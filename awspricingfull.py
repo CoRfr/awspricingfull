@@ -49,9 +49,21 @@ Updated: 3 May, 2016
 
 @version: 3.0
 """
+import sys
 
+# Syntax sugar.
+_ver = sys.version_info
 
-import urllib.request, urllib.error, urllib.parse
+#: Python 2.x?
+is_py2 = (_ver[0] == 2)
+
+#: Python 3.x?
+is_py3 = (_ver[0] == 3)
+
+if is_py3:
+    import urllib.request, urllib.error, urllib.parse
+elif is_py2:
+    import urllib2
 import csv
 import re
 try:
@@ -128,9 +140,12 @@ class AWSPrices(object):
             data (dict of dict: dict): Pricing data in a dictionary format
                
         """
-          
-        f = urllib.request.urlopen(url).read()
-        f = re.sub("/\\*[^\x00]+\\*/", "", f.decode(), 0, re.M)
+        if is_py3:
+            f = urllib.request.urlopen(url).read()
+            f = re.sub("/\\*[^\x00]+\\*/", "", f.decode(), 0, re.M)
+        elif is_py2:
+            f = urllib2.urlopen(url).read()
+            f = re.sub("/\\*[^\x00]+\\*/", "", f, 0, re.M)
         f = re.sub("([a-zA-Z0-9]+):", "\"\\1\":", f)
         f = re.sub(";", "\n", f)
         f = re.sub("callback\(", "", f)
